@@ -6,6 +6,14 @@
 
     protected override void OnInit(EventArgs args)
     {
+        var repo = ConfigurationManager.AppSettings["Github.Repo"];
+        var access_token = (Session["Github.OAuth.AccessToken"] ?? "").ToString();
+        
+        if( String.IsNullOrEmpty(access_token))
+        {
+            Response.Redirect("~/startoauth.aspx");
+        }
+        
         if (Request.HttpMethod == "POST")
         {
             foreach (var key in Request.Form.AllKeys)
@@ -24,7 +32,7 @@
                 }
 
                 var issue =
-                    JsonUtil.GetAllPagesJson<GithubIssue>("repos/OWNERNAME/REPONAME/issues/" + issueNum).
+                    JsonUtil.GetAllPagesJson<GithubIssue>(access_token, "repos/" + repo + "/issues/" + issueNum).
                         FirstOrDefault();
 
                 if (issue == null)
@@ -38,10 +46,10 @@
 
                 var newBody = JsonUtil.SetMeta(newMeta, issue.Body);
 
-                var bodyReq = new BodyUpdate(newBody, JsonUtil.APITOKEN);
+                var bodyReq = new BodyUpdate(newBody, access_token);
 
                 var updatedJson = bodyReq.ToJson();
-                JsonUtil.PatchAndGetStringFromUrl("repos/OWNERNAME/REPONAME/issues/" + issueNum, updatedJson, r => { });
+                JsonUtil.PatchAndGetStringFromUrl(access_token, "repos/" + repo + "/issues/" + issueNum, updatedJson, r => { });
             }
         }
 

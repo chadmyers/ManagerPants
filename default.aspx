@@ -5,9 +5,18 @@
 
     public bool OrderEntryMode { get; set; }    
     public Dictionary<GithubMilestone, IEnumerable<GithubIssue>> issuesToDisplay;
+    public string repo = ConfigurationManager.AppSettings["Github.Repo"];
+    public string access_token = null;
 
     protected override void OnInit(EventArgs args)
     {
+        access_token = (Session["Github.OAuth.AccessToken"] ?? "").ToString();
+
+        if (String.IsNullOrEmpty(access_token))
+        {
+            Response.Redirect("~/startoauth.aspx");
+        }
+        
         issuesToDisplay = PrintMilestoneWithRoadmapIssues("Roadmap", "Customer Request");
 
         OrderEntryMode = (Request.QueryString["edit"] == "1");
@@ -18,7 +27,7 @@
         // - Only show ones that are Roadmap or Customer Request
        
         // Get the milestones,
-        var milestones = JsonUtil.GetAllPagesJson<GithubMilestone>("repos/OWNERNAME/REPONAME/milestones");
+        var milestones = JsonUtil.GetAllPagesJson<GithubMilestone>(access_token, "repos/" + repo + "/milestones");
 
         var top4Milestones = milestones
             .OrderBy(m => JsonUtil.GetMeta(m).Order) // Get the ordering
@@ -50,14 +59,14 @@
     
     private IEnumerable<GithubIssue> getAllIssuesForLabelAndMilestone(GithubMilestone milestone, string label)
     {
-        const string issuesForMilestoneUrlFormat = "repos/OWNERNAME/REPONAME/issues";
+        string issuesForMilestoneUrlFormat = "repos/" + repo + "/issues";
         const string issuesForMilestoneQueryFormat = "milestone={0}&labels={1}&state={2}";
         
         var openIssues =
-            JsonUtil.GetAllPagesJson<GithubIssue>(issuesForMilestoneUrlFormat, issuesForMilestoneQueryFormat, milestone.Number, label, "open");
+            JsonUtil.GetAllPagesJson<GithubIssue>(access_token, issuesForMilestoneUrlFormat, issuesForMilestoneQueryFormat, milestone.Number, label, "open");
 
         var closedIssues =
-            JsonUtil.GetAllPagesJson<GithubIssue>(issuesForMilestoneUrlFormat, issuesForMilestoneQueryFormat, milestone.Number, label, "closed");
+            JsonUtil.GetAllPagesJson<GithubIssue>(access_token, issuesForMilestoneUrlFormat, issuesForMilestoneQueryFormat, milestone.Number, label, "closed");
 
         return openIssues.Concat(closedIssues);
     }
@@ -65,7 +74,7 @@
     
     public void PrintIssuesByMilestoneInHuboardOrder()
     {
-        var issues = JsonUtil.GetAllPagesJson<GithubIssue>("repos/OWNERNAME/REPONAME/issues");
+        var issues = JsonUtil.GetAllPagesJson<GithubIssue>(access_token, "repos/" + repo + "/issues");
         var milestones = new Dictionary<string, GithubMilestone>();
 
         // Group by milestone

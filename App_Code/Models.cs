@@ -45,6 +45,20 @@ public class GithubIssue
     }
 }
 
+public class OAuthTokenRequest
+{
+    public string client_id { get; set; }
+    public string client_secret { get; set; }
+    public string code { get; set; }
+    public string state { get; set; }
+}
+
+public class OAuthTokenResponse
+{
+    public string access_token { get; set; }
+    public string token_type { get; set; }
+}
+
 public class BodyUpdate
 {
     public BodyUpdate(string newBody, string token)

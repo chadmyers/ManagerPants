@@ -10,10 +10,9 @@ using ServiceStack.Text;
 public static class JsonUtil
 {
     public static readonly Regex MetaRegex = new Regex("@managerpants:(?<data>.*)", RegexOptions.IgnoreCase);
-    public static readonly string GithubApiBaseUrl = ConfigurationManager.AppSettings["GithubAPIUrl"];
-    public static readonly string APITOKEN = ConfigurationManager.AppSettings["APITOKEN"];
+    public static readonly string GithubApiBaseUrl = "https://api.github.com/";
 
-    public static List<T> GetAllPagesJson<T>(string route, string extendedQuery = null, params object[] rawQueryArgs)
+    public static List<T> GetAllPagesJson<T>(string access_token, string route, string extendedQuery = null, params object[] rawQueryArgs)
     {
         var page = 1;
         var lastPageReached = false;
@@ -21,7 +20,7 @@ public static class JsonUtil
 
         while (!lastPageReached)
         {
-            var query = "?access_token={0}&page={1}&per_page=100".Fmt(APITOKEN, page);
+            var query = "?access_token={0}&page={1}&per_page=100".Fmt(access_token, page);
             if( !String.IsNullOrEmpty(extendedQuery) )
             {
                 var queryArgs = new object[rawQueryArgs.Length];
@@ -75,18 +74,20 @@ public static class JsonUtil
         }
     }
 
-    public static string PostAndGetStringFromUrl(string url, string postData, Action<HttpWebRequest> modifier)
+    public static string PostAndGetStringFromUrl(string access_token, string url, string postData, string acceptContentType = "*/*", string contentType = "application/x-www-form-urlencoded", Action<HttpWebRequest> modifier = null)
     {
-        url = string.Concat(GithubApiBaseUrl, url, "?access_token=" + APITOKEN);
-
         var webReq = (HttpWebRequest)WebRequest.Create(url);
         webReq.Method = "POST";
         var bytes = System.Text.Encoding.ASCII.GetBytes(postData);
         webReq.ContentLength = bytes.Length;
-        webReq.ContentType = "application/x-www-form-urlencoded";
-        webReq.Accept = "*/*";
+        webReq.ContentType = contentType;
+        webReq.Accept = acceptContentType;
         webReq.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip,deflate");
-        modifier(webReq);
+        if (access_token != null)
+        {
+            webReq.Headers.Add(HttpRequestHeader.Authorization, "token " + access_token);
+        }
+        if (modifier != null) modifier(webReq);
         webReq.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
         webReq.GetRequestStream().Write(bytes, 0, bytes.Length);
         using (var webRes = webReq.GetResponse())
@@ -97,17 +98,15 @@ public static class JsonUtil
         }
     }
 
-    public static string PatchAndGetStringFromUrl(string url, string postData, Action<HttpWebRequest> modifier)
+    public static string PatchAndGetStringFromUrl(string access_token, string url, string postData, Action<HttpWebRequest> modifier)
     {
-        url = string.Concat(GithubApiBaseUrl, url, "?access_token=" + APITOKEN);
-
         var webReq = (HttpWebRequest)WebRequest.Create(url);
         webReq.Method = "PATCH";
         var bytes = System.Text.Encoding.UTF8.GetBytes(postData);
         webReq.ContentLength = bytes.Length;
         webReq.ContentType = "application/json";
         webReq.Accept = "application/json";
-        webReq.Headers.Add(HttpRequestHeader.Authorization, "token " + APITOKEN);
+        webReq.Headers.Add(HttpRequestHeader.Authorization, "token " + access_token);
         webReq.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip,deflate");
         modifier(webReq);
         webReq.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
