@@ -3,13 +3,26 @@
 
 <script runat="server">
 
-    public bool OrderEntryMode { get; set; }    
-    public Dictionary<GithubMilestone, IEnumerable<GithubIssue>> issuesToDisplay;
-    public string repo = ConfigurationManager.AppSettings["Github.Repo"];
-    public string access_token = null;
+
+    private bool OrderEntryMode;
+    private Dictionary<GithubMilestone, IEnumerable<GithubIssue>> issuesToDisplay;
+    private string repo = ConfigurationManager.AppSettings["Github.Repo"];
+    private string access_token = null;
 
     protected override void OnInit(EventArgs args)
     {
+        OrderEntryMode = (Request.QueryString["edit"] == "1");
+        
+        issuesToDisplay = Cache[Constants.ISSUE_CACHE_KEY] as Dictionary<GithubMilestone, IEnumerable<GithubIssue>>;
+
+        if (OrderEntryMode || Request.QueryString[Constants.FORCE_CACHE_MODE] == "1")
+        {
+            issuesToDisplay = null;
+        }
+        
+        // If we have a cached value, we don't need to check for auth or anything like that
+        if ( issuesToDisplay != null ) return;
+        
         access_token = (Session["Github.OAuth.AccessToken"] ?? "").ToString();
 
         if (String.IsNullOrEmpty(access_token))
@@ -17,9 +30,11 @@
             Response.Redirect("~/startoauth.aspx");
         }
         
-        issuesToDisplay = PrintMilestoneWithRoadmapIssues("Roadmap", "Customer Request");
-
-        OrderEntryMode = (Request.QueryString["edit"] == "1");
+        if (issuesToDisplay == null)
+        {
+            issuesToDisplay = PrintMilestoneWithRoadmapIssues("Roadmap", "Customer Request");
+            Cache[Constants.ISSUE_CACHE_KEY] = issuesToDisplay;
+        }
     }
     
     public Dictionary<GithubMilestone, IEnumerable<GithubIssue>> PrintMilestoneWithRoadmapIssues(params string[] labelsArray)
@@ -72,7 +87,7 @@
     }
 
     
-    public void PrintIssuesByMilestoneInHuboardOrder()
+    public void PrintIssuesByMilestoneInOrder()
     {
         var issues = JsonUtil.GetAllPagesJson<GithubIssue>(access_token, "repos/" + repo + "/issues");
         var milestones = new Dictionary<string, GithubMilestone>();
@@ -102,7 +117,59 @@
             Response.Write("</ul>\n");
         }
     }
-	
+
+    public string GetIssueStateClasses(GithubIssue issue)
+    {
+        var classes = issue.State;
+
+        if (issue.State == "closed") return classes;
+        
+        if(issue.Labels.Any(l => l.Name.Contains("Development")))
+        {
+            classes += " indev";
+        }
+
+        if (issue.Labels.Any(l => l.Name.Contains("Review")))
+        {
+            classes += " review";
+        }
+
+        return classes;
+    }
+    
+    public string GetIssueStateForDisplay(GithubIssue issue)
+    {
+        if (issue.State == "closed")
+        {
+            return "Done";
+        }
+        
+        if (issue.Labels.Any(l => l.Name.Contains("Development")))
+        {
+            return "Working";
+        }
+
+        if (issue.Labels.Any(l => l.Name.Contains("Review")))
+        {
+            return "In Review";
+        }
+        
+        if( issue.State == "open")
+        {
+            return "Not Started";
+        }
+        
+        
+        
+        return Char.ToUpper(issue.State[0]) + issue.State.Substring(1);
+    }
+    
+    public bool IsDevLabel(GithubLabel label)
+    {
+        var name = label.Name;
+        return !Regex.IsMatch(name, "^[0-9]") && ! name.Contains("Dev");
+    }
+ 
 </script>
 
 <html>
@@ -149,11 +216,19 @@
             }
             
             .state-indicator.open {
-                background: #6CC644;
+                background: #A1A1A1;
             }
             
             .state-indicator.closed {
-                background: #BD2C00;
+                background: #6CC644;
+            }
+            
+            .state-indicator.indev {
+                background: #F2B10D;
+            }
+            
+            .state-indicator.review {
+                background: #0157A7;
             }
         </style>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
@@ -187,20 +262,20 @@
                 <% foreach (var issue in pair.Value) { %>
                     <tr>
                         <td>
-                            <span class="state-indicator <%= issue.State %>">
-                                <%= Char.ToUpper(issue.State[0]) %><%= issue.State.Substring(1) %>
+                            <span class="state-indicator <%= GetIssueStateClasses(issue) %>">
+                                <%= GetIssueStateForDisplay(issue) %>
                             </span>
                         </td>
                         <td class="issue-number"><a href="<%= issue.Html_Url %>" target="_blank"><%= issue.Number %></a></td>
                         <td><a href="<%= issue.Html_Url %>" target="_blank"><%= issue.Title %></a></td>
                         <td>
-                            <%foreach( var label in issue.Labels.Where( l => !Regex.IsMatch(l.Name, "^[0-9]") && ! l.Name.Contains("Dev")) ){ %>
+                            <%foreach( var label in issue.Labels.Where(IsDevLabel) ){ %>
                                 <span class="label-color" style="background-color: #<%=label.Color%>;">&nbsp;</span> <%= label.Name %>
                             <% } %>
                         </td>
                         <% if (OrderEntryMode){ %>
                         <td>
-                            <input type="number" maxlength="5" name="order-<%=issue.Number %>" min="1" max="99999" value="<%= issue.Meta.Order %>"/>
+                            <input type="number" maxlength="5" name="order-<%=issue.Number %>" min="1" max="100000" value="<%= issue.Meta.Order %>"/>
                         </td>
                         <% } %>
                     </tr>

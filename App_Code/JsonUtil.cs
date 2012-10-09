@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -9,8 +8,8 @@ using ServiceStack.Text;
 
 public static class JsonUtil
 {
-    public static readonly Regex MetaRegex = new Regex("@managerpants:(?<data>.*)", RegexOptions.IgnoreCase);
-    public static readonly string GithubApiBaseUrl = "https://api.github.com/";
+    private static readonly Regex MetaRegex = new Regex("@managerpants:(?<data>.*)", RegexOptions.IgnoreCase);
+    
 
     public static List<T> GetAllPagesJson<T>(string access_token, string route, string extendedQuery = null, params object[] rawQueryArgs)
     {
@@ -31,7 +30,7 @@ public static class JsonUtil
 
                 query = string.Concat(query, "&", String.Format(extendedQuery, queryArgs));
             }
-            var url = string.Concat(GithubApiBaseUrl, route, query);
+            var url = string.Concat(Constants.GithubApiBaseUrl, route, query);
             var curPageItems = url.GetJsonFromUrl(res =>
                                                       {
                                                           var linkHeader = res.Headers["Link"];

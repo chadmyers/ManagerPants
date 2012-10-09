@@ -49,7 +49,12 @@
                 var bodyReq = new BodyUpdate(newBody, access_token);
 
                 var updatedJson = bodyReq.ToJson();
-                JsonUtil.PatchAndGetStringFromUrl(access_token, "repos/" + repo + "/issues/" + issueNum, updatedJson, r => { });
+
+                var updateUrl = Constants.GithubApiBaseUrl + "repos/" + repo + "/issues/" + issueNum;
+                
+                JsonUtil.PatchAndGetStringFromUrl(access_token, updateUrl, updatedJson, r => { });
+
+                Cache.Remove(Constants.ISSUE_CACHE_KEY);
             }
         }
 
