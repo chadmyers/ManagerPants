@@ -127,7 +127,7 @@
             classes += " indev";
         }
 
-        if (issue.Labels.Any(l => l.Name.Contains("Review")))
+        if (issue.Labels.Any(l => l.Name == "2 - Review") )
         {
             classes += " review";
         }
@@ -147,9 +147,9 @@
             return "Development";
         }
 
-        if (issue.Labels.Any(l => l.Name.Contains("Review")))
+        if (issue.Labels.Any(l => l.Name == "2 - Review"))
         {
-            return "In Review";
+            return "Testing";
         }
         
         if( issue.State == "open")
@@ -165,7 +165,7 @@
     public bool IsDevLabel(GithubLabel label)
     {
         var name = label.Name;
-        return !Regex.IsMatch(name, "^[0-9]") && ! name.Contains("Dev");
+        return !Regex.IsMatch(name, "^[0-9]") && ! name.Contains("Dev") && name != "UI/UX";
     }
  
 </script>
