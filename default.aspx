@@ -32,15 +32,13 @@
         
         if (issuesToDisplay == null)
         {
-            issuesToDisplay = PrintMilestoneWithRoadmapIssues("Roadmap", "Customer Request");
+            issuesToDisplay = PrintMilestoneWithRoadmapIssues("Roadmap", "Roadmap Review", "Customer Request", "Prospect Request", "Strategic", "Tactical");
             Cache[Constants.ISSUE_CACHE_KEY] = issuesToDisplay;
         }
     }
     
     public Dictionary<GithubMilestone, IEnumerable<GithubIssue>> PrintMilestoneWithRoadmapIssues(params string[] labelsArray)
     {
-        // - Only show ones that are Roadmap or Customer Request
-       
         // Get the milestones,
         var milestones = JsonUtil.GetAllPagesJson<GithubMilestone>(access_token, "repos/" + repo + "/milestones");
 
@@ -146,7 +144,7 @@
         
         if (issue.Labels.Any(l => l.Name.Contains("Development")))
         {
-            return "Working";
+            return "Development";
         }
 
         if (issue.Labels.Any(l => l.Name.Contains("Review")))
@@ -245,7 +243,7 @@
             <h1><%: pair.Key.Title %><small>Due: <abbr class="timeago" title="<%= pair.Key.Due_On.ToString("s") %>" ><%= pair.Key.Due_On.ToLongDateString() %></abbr></small></h1>
             
             <%if( ! pair.Value.Any() ) {%>
-              (there are no roadmap or customer request issues for this milestone yet)
+              (there are no roadmap or customer/prospect request issues for this milestone yet)
             <%} else { %>
             <form name="order-form-<%= pair.Key.Number %>" action="update.aspx" method="POST" enctype="application/x-www-form-urlencoded" >
             <table>
