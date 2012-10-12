@@ -120,6 +120,11 @@
     {
         var classes = issue.State;
 
+        if( issue.Meta.Cancelled )
+        {
+            return classes += " cancelled";
+        }
+        
         if (issue.State == "closed") return classes;
         
         if(issue.Labels.Any(l => l.Name.Contains("Development")))
@@ -137,6 +142,11 @@
     
     public string GetIssueStateForDisplay(GithubIssue issue)
     {
+        if (issue.Meta.Cancelled)
+        {
+            return "Cancelled";
+        }
+        
         if (issue.State == "closed")
         {
             return "Done";
@@ -154,7 +164,7 @@
         
         if( issue.State == "open")
         {
-            return "Not Started";
+            return "Not In Dev";
         }
         
         
@@ -211,6 +221,7 @@
                 background: #999;
                 padding: 7px 10px;
                 margin-bottom: 10px;
+                width: 90px;
             }
             
             .state-indicator.open {
@@ -228,17 +239,74 @@
             .state-indicator.review {
                 background: #0157A7;
             }
+            
+            .state-indicator.cancelled {
+                background: #BD2C00;
+            }
+            
+            .bump-flag {
+                display: none;
+                padding-right: 5px;
+                font-weight: bold;
+                color: #BD2C00;
+            }
+            
+            .bump-flag.bumped {
+                display: initial;
+            }
+            
+            .legend {
+                display: none;
+            }
+            
+            .legend .state-indicator {
+                float: left;
+            }
+            
+            .legend p {
+                clear: both;
+            }
         </style>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
         <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery-timeago/0.9.3/jquery.timeago.js"></script>
         <script type="text/javascript">
-            jQuery.timeago.settings.allowFuture = true;
-            jQuery(document).ready(function () {
-                jQuery("abbr.timeago").timeago();
+            $.timeago.settings.allowFuture = true;
+            $(document).ready(function () {
+                $("abbr.timeago").timeago();
+                $(".toggle-legend").click(function () {
+                    $(".legend").toggle();
+                    $(".hidden-legend").toggle();
+                });
             });
         </script>
     </head>
     <body>
+        <div class="legend">
+        Legend:
+            <p>
+                <span class="state-indicator open">Not In Dev</span> = Not currently being worked. It has either not been started, or some work was done, but it is no longer being worked.
+            </p>
+            <p>
+                <span class="state-indicator open indev">Development</span> = Currently being worked by a developer or pair
+            </p>
+            <p>
+                <span class="state-indicator open review">Testing</span> = Development is done and is being reviewed by tester or another developer (in the case of technical changes)
+            </p>
+            <p>
+                <span class="state-indicator closed cancelled">Cancelled</span> = A decision was made to not do this issue for various reasons (overtaken by events, no longer applies, turns out it doesn't make sense, etc)
+            </p>
+            <p>
+                <span class="state-indicator closed">Done</span> = Coded and tested. Will appear in the next release.
+            </p>
+            <p>
+                <span class="bump-flag bumped">(Bumped)</span> = Was originally scheduled in a previous iteration, but was delayed or bumped to this iteration
+            </p>
+            <p>
+                <button class="toggle-legend">Hide legend</button>
+            </p>
+        </div>
+        <div class="hidden-legend"><button class="toggle-legend">Show legend</button></div>
+        
         <% foreach (var pair in issuesToDisplay) { %>
             <h1><%: pair.Key.Title %><small>Due: <abbr class="timeago" title="<%= pair.Key.Due_On.ToString("s") %>" ><%= pair.Key.Due_On.ToLongDateString() %></abbr></small></h1>
             
@@ -265,7 +333,7 @@
                             </span>
                         </td>
                         <td class="issue-number"><a href="<%= issue.Html_Url %>" target="_blank"><%= issue.Number %></a></td>
-                        <td><a href="<%= issue.Html_Url %>" target="_blank"><%= issue.Title %></a></td>
+                        <td><span class="bump-flag<%= issue.WasBumped ? " bumped" : "" %>">(Bumped)</span><a href="<%= issue.Html_Url %>" target="_blank"><%= issue.Title %></a></td>
                         <td>
                             <%foreach( var label in issue.Labels.Where(IsDevLabel) ){ %>
                                 <span class="label-color" style="background-color: #<%=label.Color%>;">&nbsp;</span> <%= label.Name %>

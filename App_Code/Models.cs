@@ -24,6 +24,16 @@ public class GithubIssue
     public string Id { get; set; }
     public ManagerPantsMeta Meta { get; private set; }
 
+    public bool WasBumped
+    {
+        get
+        {
+            if (String.IsNullOrEmpty(Meta.PlannedMilestoneNumber)) return false;
+
+            return Meta.PlannedMilestoneNumber != Milestone.Number;
+        }
+    }
+
     public bool Equals(GithubIssue other)
     {
         if (ReferenceEquals(null, other)) return false;
@@ -79,7 +89,9 @@ public class ManagerPantsMeta
     }
 
     public int Order { get; set; }
+    public bool Cancelled { get; set; }
     public string TShirtSize { get; set; }
+    public string PlannedMilestoneNumber { get; set; }
 
     public static ManagerPantsMeta Default()
     {
