@@ -42,15 +42,15 @@
         // Get the milestones,
         var milestones = JsonUtil.GetAllPagesJson<GithubMilestone>(access_token, "repos/" + repo + "/milestones");
 
-        var top4Milestones = milestones
+        var top10Milestones = milestones
             .OrderBy(m => JsonUtil.GetMeta(m).Order) // Get the ordering
-            .Take(4); // Only show the first 4 milestones
+            .Take(10); // Only show the first 10 milestones
 
 
         var issueDictionary = new Dictionary<GithubMilestone, IEnumerable<GithubIssue>>();
         
         // Get issues for each milestone
-        foreach( var milestone in top4Milestones )
+        foreach( var milestone in top10Milestones )
         {
             IEnumerable<GithubIssue> issues = new GithubIssue[0];
 
