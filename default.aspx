@@ -32,7 +32,7 @@
         
         if (issuesToDisplay == null)
         {
-            issuesToDisplay = PrintMilestoneWithRoadmapIssues("Roadmap", "Roadmap Review", "Customer Request", "Prospect Request", "Strategic", "Tactical");
+            issuesToDisplay = PrintMilestoneWithRoadmapIssues("Roadmap", "Customer Request", "Prospect Request", "Strategic", "Tactical", "Operations");
             Cache[Constants.ISSUE_CACHE_KEY] = issuesToDisplay;
         }
     }
