@@ -43,7 +43,7 @@ public static class JsonUtil
                                                               var links = linkHeader.Split(',');
                                                               // Parse the link/rel stuff into a dictionary
                                                               var linkDict = links.ToDictionary(l => l.Split(';')[1].Replace("rel=", "").Replace("\"", "").Trim(), l => Regex.Match(l.Split(';')[0], "&page=(?<page>[^&]*)&per_page").Groups["page"].Value.Trim());
-                                                              lastPageReached = linkDict["last"] == "1";
+                                                              lastPageReached = (!linkDict.ContainsKey("last") || linkDict["last"] == "1");
                                                           }
                                                       }).FromJson<List<T>>();
 
