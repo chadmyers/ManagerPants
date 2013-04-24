@@ -31,7 +31,7 @@ public static class JsonUtil
                 query = string.Concat(query, "&", String.Format(extendedQuery, queryArgs));
             }
             var url = string.Concat(Constants.GithubApiBaseUrl, route, query);
-            var curPageItems = url.GetJsonFromUrl(res =>
+            var curPageItems = GetStringFromUrl(url, "application/vnd.github.v3.full+json", res =>
                                                       {
                                                           var linkHeader = res.Headers["Link"];
                                                           if( String.IsNullOrEmpty(linkHeader) )
@@ -59,6 +59,7 @@ public static class JsonUtil
     {
         var webReq = (HttpWebRequest)WebRequest.Create(url);
         webReq.Accept = acceptContentType;
+        webReq.UserAgent = "Dovetail/ManagerPants";
         webReq.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip,deflate");
         webReq.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
         using (var webRes = webReq.GetResponse())

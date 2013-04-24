@@ -284,7 +284,7 @@
         <div class="legend">
         Legend:
             <p>
-                <span class="state-indicator open">Not In Dev</span> = Not currently being worked. It has either not been started, or some work was done, but it is no longer being worked for some reason (developer blocked, higher priority item trumped this one, etc)
+                <span class="state-indicator open">Not In Dev</span> = Not currently being worked. It has either not been started, or some work was done, but it is no longer being worked.
             </p>
             <p>
                 <span class="state-indicator open indev">Development</span> = Currently being worked by a developer or pair
