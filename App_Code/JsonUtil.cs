@@ -106,6 +106,7 @@ public static class JsonUtil
         webReq.ContentLength = bytes.Length;
         webReq.ContentType = "application/vnd.github.v3.full+json";
         webReq.Accept = "application/vnd.github.v3.full+json";
+        webReq.UserAgent = "Dovetail/ManagerPants";
         webReq.Headers.Add(HttpRequestHeader.Authorization, "token " + access_token);
         webReq.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip,deflate");
         modifier(webReq);
