@@ -104,8 +104,8 @@ public static class JsonUtil
         webReq.Method = "PATCH";
         var bytes = System.Text.Encoding.UTF8.GetBytes(postData);
         webReq.ContentLength = bytes.Length;
-        webReq.ContentType = "application/json";
-        webReq.Accept = "application/json";
+        webReq.ContentType = "application/vnd.github.v3.full+json";
+        webReq.Accept = "application/vnd.github.v3.full+json";
         webReq.Headers.Add(HttpRequestHeader.Authorization, "token " + access_token);
         webReq.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip,deflate");
         modifier(webReq);
