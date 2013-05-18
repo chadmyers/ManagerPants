@@ -132,7 +132,7 @@
             classes += " indev";
         }
 
-        if (issue.Labels.Any(l => l.Name == "2 - Review") )
+        if (issue.Labels.Any(l => l.Name.Contains("- Review") ) )
         {
             classes += " review";
         }
@@ -157,7 +157,7 @@
             return "Development";
         }
 
-        if (issue.Labels.Any(l => l.Name == "2 - Review"))
+        if (issue.Labels.Any(l => l.Name.Contains("- Review") ) )
         {
             return "Testing";
         }
