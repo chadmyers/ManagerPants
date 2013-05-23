@@ -127,7 +127,7 @@
         
         if (issue.State == "closed") return classes;
         
-        if(issue.Labels.Any(l => l.Name.Contains("Development")))
+        if(issue.Labels.Any(l => l.Name.Contains("Dev")))
         {
             classes += " indev";
         }
@@ -152,7 +152,7 @@
             return "Done";
         }
         
-        if (issue.Labels.Any(l => l.Name.Contains("Development")))
+        if (issue.Labels.Any(l => l.Name.Contains("Dev")))
         {
             return "Development";
         }
