@@ -126,6 +126,11 @@
         }
         
         if (issue.State == "closed") return classes;
+
+        if (issue.Labels.Any(l => l.Name.ToLower().Contains("blocked")))
+        {
+            classes += " blocked";
+        }
         
         if(issue.Labels.Any(l => l.Name.Contains("Dev")))
         {
@@ -150,6 +155,11 @@
         if (issue.State == "closed")
         {
             return "Done";
+        }
+
+        if (issue.Labels.Any(l => l.Name.ToLower().Contains("blocked")))
+        {
+            return "Blocked";
         }
         
         if (issue.Labels.Any(l => l.Name.Contains("Dev")))
@@ -241,6 +251,14 @@
             }
             
             .state-indicator.cancelled {
+                background: #BD2C00;
+            }
+            
+            .state-indicator.indev {
+                background: #F2B10D;
+            }
+            
+            .state-indicator.blocked {
                 background: #BD2C00;
             }
             
